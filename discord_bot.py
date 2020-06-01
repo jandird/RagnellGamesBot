@@ -53,16 +53,17 @@ star_cards = [
     'Keep this card! On a future roll this card will allow you to add between 1-3 to your roll.',
     
     'Sabotage! \n'
-    'Keep this card! During a future 1v1 of either fishing for bug catching you are allowed to choose one of the teams'
-    'and follow them to try and steal their catches. Note: You are not allowed to scare away the fish or critters and'
+    'Keep this card! During a future 1v1 of either fishing for bug catching you are allowed to choose one of the teams '
+    'and follow them to try and steal their catches. Note: You are not allowed to scare away the fish or critters and '
     'doing so will result in having to pay the opponent 100 bells.',
     
     'Alchemy! \n'
     'Keep this card! If you receive a material when digging, you can use this cards to turn its negative value into an '
     'equivalent positive value.',
 
-    'Reverse Hop \n'
-    'Keep this card! If an opponent lands on you to send you home, you can use this card to send them home instead.'
+    'Reverse Stomp \n'
+    'Keep this card! If an opponent lands on you to send you home, you can use this card to send them home and steal '
+    '100 from them instead.',
 
     # Normal Cards
     'Planted Flowers \n'
@@ -87,7 +88,7 @@ star_cards = [
     'Go straight home. Collect 100 bells and an additional 100 bells for every opponent you pass.',
 
     'Questioning Thief \n'
-    'You have become the questioning thief. If you ask a question and an opponent answers it, you steal 100 bells from'
+    'You have become the questioning thief. If you ask a question and an opponent answers it, you steal 100 bells from '
     'them. You only use this power on each opponent once, and you lose this power at the beginning of your next turn.'
 ]
 
@@ -117,7 +118,7 @@ death_cards = [
     'This card is corrupt. You lose nothing. Congrats.',
 
     'Wicked Hole Vaulting \n'
-    'The team that drew this card must do 1 round of hole vaulting. The opposing teams get to dig 2 holes. If the'
+    'The team that drew this card must do 1 round of hole vaulting. The opposing teams get to dig 2 holes. If the '
     'vaulting team lands in one of the holes, they must pay each of opposing teams 100 bells',
 
     'Hide or Die \n'
@@ -126,7 +127,11 @@ death_cards = [
 
     'Where is the Villager? \n'
     'The team that drew this card must guess if a villager is at home or outside. If the guess is incorrect they lose '
-    '200 bells. '
+    '200 bells.',
+    
+    'Minefield! \n'
+    'The team that drew this card must try standing on one of the pitfall locations. If they fall in they lose 200 '
+    'bells. However if they do not fall in they can dig that spot up and take their prize.'
 ]
 
 villagers = [
@@ -150,9 +155,9 @@ deaths = []
 async def on_ready():
     global question_cards, questions, death_cards, deaths, star_cards, stars
 
-    questions = question_cards
-    stars = star_cards
-    deaths = death_cards
+    questions = list(question_cards)
+    stars = list(star_cards)
+    deaths = list(death_cards)
 
     print("Bot is Ready")
 
@@ -163,25 +168,70 @@ async def ping(ctx):
 
 
 @bot.command()
-async def roll(ctx):
+async def rules(ctx):
+    await ctx.send('Welcome to the Ragnell Games, thank you for playing! \n \n'
+                   'Objective: Be the first team to fill your coin field with 16 coins. \n'
+                   'Turns: Each team takes turns rolling the die, and moves the number of spaces specified by the die. '
+                   'The following things can occur after moving. \n'
+                   '\t - Land on Fish / Caterpie: 1v1 Fishing / Bug Catching tournament. The moving team has 3 options:'
+                   '\n'
+                   '\t \t - Win 100. Face the team directly in front of you. \n'
+                   '\t \t - Win 200. Face the team directly in front of you. However if you lose the opposing team '
+                   'wins 100. \n'
+                   '\t \t - Steal 200. Face any team of your choosing. If you win you steal 200 from the opposing '
+                   'team. If you lose the opposing team steals 100 from you. \n'
+                   '\t - Land on Shovel: Dig 1 area from the dig sites. If you get bells you win the respective '
+                   'amount. If you get a material you lose the following amounts: Stone - 100, Clay - 200, Iron - 300.'
+                   '\n'
+                   '\t - Land on Question: Draw a question card (!q) \n'
+                   '\t - Land on Star: Draw a star card (!s) \n'
+                   '\t - Land on Death: Draw a death card (!d) \n'
+                   '\t - Pass Home: Gain 100 \n'
+                   '\t - Land on Home: Gain 200 \n'
+                   '\t - Land on Opposing Team Home: Opposing team steals 100 \n'
+                   '\t - Land on Opposing Team (STOMP): Send opposing team home and steal 100. Play off landed square. '
+                   '\n'
+                   'Note: When opponents are fishing or catching bugs you are allowed to follow. However you cannot '
+                   'catch or scare anything away. If this occurs: Direct Opponent - Forfeit Round, Indirect Opponent - '
+                   'Give up 100 to opponent'
+                   '\n MOST IMPORTANT RULE: Have Fun :)')
+
+
+@bot.command()
+async def r(ctx):
     await ctx.send(random.randint(1, 6))
 
 
 @bot.command()
-async def question(ctx):
+async def q(ctx):
+    global questions, question_cards
+    if len(questions) == 0:
+        questions = list(question_cards)
+
     card = random.choice(questions)
+    questions.remove(card)
     await ctx.send(card)
 
 
 @bot.command()
-async def star(ctx):
+async def s(ctx):
+    global stars, star_cards
+    if len(stars) == 0:
+        stars = list(star_cards)
+
     card = random.choice(stars)
+    stars.remove(card)
     await ctx.send(card)
 
 
 @bot.command()
-async def death(ctx):
+async def d(ctx):
+    global deaths, death_cards
+    if len(deaths) == 0:
+        deaths = list(death_cards)
+
     card = random.choice(deaths)
+    deaths.remove(card)
     await ctx.send(card)
 
 
@@ -189,5 +239,16 @@ async def death(ctx):
 async def villager(ctx):
     animal = random.choice(villagers)
     await ctx.send(animal)
+
+
+@bot.command()
+async def missmyex(ctx):
+    await ctx.send("It's okay Andrew, you're the best, I love you <3")
+
+
+@bot.command()
+async def anime(ctx):
+    animes = ["AOT", "MHA", "DN"]
+    await ctx.send(random.choice(animes))
 
 bot.run(store_token.get_token())
